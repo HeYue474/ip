@@ -1,12 +1,12 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * Entry point for the Sal chatbot.
- * Level-5 behavior: handle invalid/unknown user input via {@link SalException}.
+ * Level-6 behavior: delete tasks, with tasks stored in an {@link ArrayList}.
  */
 public class Sal {
     private static final String LINE = "____________________________________________________________";
-    private static final int MAX_TASKS = 100;
 
     public static void main(String[] args) {
         String banner = " ____        _ \n"
@@ -21,8 +21,7 @@ public class Sal {
         System.out.println("What can I do for you?");
         System.out.println(LINE);
 
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -41,22 +40,25 @@ public class Sal {
                     scanner.close();
                     return;
                 case "list":
-                    printList(tasks, taskCount);
+                    printList(tasks);
                     break;
                 case "mark":
-                    markTask(input, tasks, taskCount);
+                    markTask(input, tasks);
                     break;
                 case "unmark":
-                    unmarkTask(input, tasks, taskCount);
+                    unmarkTask(input, tasks);
                     break;
                 case "todo":
-                    taskCount = addTodo(input, tasks, taskCount);
+                    addTodo(input, tasks);
                     break;
                 case "deadline":
-                    taskCount = addDeadline(input, tasks, taskCount);
+                    addDeadline(input, tasks);
                     break;
                 case "event":
-                    taskCount = addEvent(input, tasks, taskCount);
+                    addEvent(input, tasks);
+                    break;
+                case "delete":
+                    deleteTask(input, tasks);
                     break;
                 default:
                     throw new SalException("Command not recognised.");
@@ -72,11 +74,11 @@ public class Sal {
     /**
      * Prints all tasks currently stored.
      */
-    private static void printList(Task[] tasks, int taskCount) {
+    private static void printList(ArrayList<Task> tasks) {
         System.out.println(LINE);
         System.out.println("Here are the tasks in your list:");
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println((i + 1) + "." + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
         }
         System.out.println(LINE);
     }
@@ -84,16 +86,16 @@ public class Sal {
     /**
      * Marks a task as done. Expected format: {@code mark <task number>}.
      */
-    private static void markTask(String input, Task[] tasks, int taskCount) throws SalException {
+    private static void markTask(String input, ArrayList<Task> tasks) throws SalException {
         try {
             int index = Integer.parseInt(input.substring("mark".length()).trim()) - 1;
-            if (index < 0 || index >= taskCount) {
-                throw new SalException("Task number out of bounds (0-" + taskCount);
+            if (index < 0 || index >= tasks.size()) {
+                throw new SalException("Task number out of bounds (0-" + tasks.size());
             }
-            tasks[index].markAsDone();
+            tasks.get(index).markAsDone();
             System.out.println(LINE);
             System.out.println("Nice! I've marked this task as done:");
-            System.out.println("  " + tasks[index]);
+            System.out.println("  " + tasks.get(index));
             System.out.println(LINE);
         } catch (SalException e) {
             throw e;
@@ -105,16 +107,16 @@ public class Sal {
     /**
      * Marks a task as not done. Expected format: {@code unmark <task number>}.
      */
-    private static void unmarkTask(String input, Task[] tasks, int taskCount) throws SalException {
+    private static void unmarkTask(String input, ArrayList<Task> tasks) throws SalException {
         try {
             int index = Integer.parseInt(input.substring("unmark".length()).trim()) - 1;
-            if (index < 0 || index >= taskCount) {
-                throw new SalException("Task number out of bounds (0-" + taskCount);
+            if (index < 0 || index >= tasks.size()) {
+                throw new SalException("Task number out of bounds (0-" + tasks.size());
             }
-            tasks[index].markAsNotDone();
+            tasks.get(index).markAsNotDone();
             System.out.println(LINE);
             System.out.println("OK, I've marked this task as not done yet:");
-            System.out.println("  " + tasks[index]);
+            System.out.println("  " + tasks.get(index));
             System.out.println(LINE);
         } catch (SalException e) {
             throw e;
@@ -124,21 +126,39 @@ public class Sal {
     }
 
     /**
-     * Adds a todo. Expected format: {@code todo <task name>}.
-     *
-     * @return Updated task count after adding.
+     * Deletes a task. Expected format: {@code delete <task number>}.
      */
-    private static int addTodo(String input, Task[] tasks, int taskCount) throws SalException {
+    private static void deleteTask(String input, ArrayList<Task> tasks) throws SalException {
+        try {
+            int index = Integer.parseInt(input.substring("delete".length()).trim()) - 1;
+            if (index < 0 || index >= tasks.size()) {
+                throw new SalException("Task number out of bounds (0-" + tasks.size());
+            }
+            Task removed = tasks.remove(index);
+            System.out.println(LINE);
+            System.out.println("Noted. I've removed this task:");
+            System.out.println("  " + removed);
+            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+            System.out.println(LINE);
+        } catch (SalException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SalException("Correct format: delete <task number>");
+        }
+    }
+
+    /**
+     * Adds a todo. Expected format: {@code todo <task name>}.
+     */
+    private static void addTodo(String input, ArrayList<Task> tasks) throws SalException {
         try {
             String description = input.substring("todo".length()).trim();
             if (description.isEmpty()) {
                 throw new SalException("Correct format: todo <task name>");
             }
             Task task = new Todo(description);
-            tasks[taskCount] = task;
-            taskCount++;
-            printAdded(task, taskCount);
-            return taskCount;
+            tasks.add(task);
+            printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
         } catch (Exception e) {
@@ -148,10 +168,8 @@ public class Sal {
 
     /**
      * Adds a deadline. Expected format: {@code deadline <task name> /by <date/time>}.
-     *
-     * @return Updated task count after adding.
      */
-    private static int addDeadline(String input, Task[] tasks, int taskCount) throws SalException {
+    private static void addDeadline(String input, ArrayList<Task> tasks) throws SalException {
         try {
             String rest = input.substring("deadline".length()).trim();
             String[] parts = rest.split(" /by ", 2);
@@ -159,10 +177,8 @@ public class Sal {
                 throw new SalException("Correct format: deadline <task name> /by <date/time>");
             }
             Task task = new Deadline(parts[0].trim(), parts[1].trim());
-            tasks[taskCount] = task;
-            taskCount++;
-            printAdded(task, taskCount);
-            return taskCount;
+            tasks.add(task);
+            printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
         } catch (Exception e) {
@@ -172,10 +188,8 @@ public class Sal {
 
     /**
      * Adds an event. Expected format: {@code event <task name> /from <start> /to <end>}.
-     *
-     * @return Updated task count after adding.
      */
-    private static int addEvent(String input, Task[] tasks, int taskCount) throws SalException {
+    private static void addEvent(String input, ArrayList<Task> tasks) throws SalException {
         try {
             String rest = input.substring("event".length()).trim();
             String[] fromParts = rest.split(" /from ", 2);
@@ -187,10 +201,8 @@ public class Sal {
                 throw new SalException("Correct format: event <task name> /from <start> /to <end>");
             }
             Task task = new Event(fromParts[0].trim(), toParts[0].trim(), toParts[1].trim());
-            tasks[taskCount] = task;
-            taskCount++;
-            printAdded(task, taskCount);
-            return taskCount;
+            tasks.add(task);
+            printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
         } catch (Exception e) {
