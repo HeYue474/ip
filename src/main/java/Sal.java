@@ -2,7 +2,8 @@ import java.util.Scanner;
 
 /**
  * Entry point for the Sal chatbot.
- * Level-2 behavior: store user-entered tasks, list them on request, and exit on {@code bye}.
+ * Level-3 behavior: store tasks as {@link Task} objects, list them with status icons,
+ * and support {@code mark}/{@code unmark} (plus {@code bye}).
  */
 public class Sal {
     private static final String LINE = "____________________________________________________________";
@@ -21,7 +22,7 @@ public class Sal {
         System.out.println("What can I do for you?");
         System.out.println(LINE);
 
-        String[] tasks = new String[MAX_TASKS];
+        Task[] tasks = new Task[MAX_TASKS];
         int taskCount = 0;
 
         Scanner scanner = new Scanner(System.in);
@@ -36,15 +37,37 @@ public class Sal {
 
             if (input.equals("list")) {
                 System.out.println(LINE);
+                System.out.println("Here are the tasks in your list:");
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + ". " + tasks[i]);
+                    System.out.println((i + 1) + "." + tasks[i]);
                 }
                 System.out.println(LINE);
                 continue;
             }
 
+            if (input.startsWith("mark ")) {
+                int index = Integer.parseInt(input.substring(5).trim()) - 1;
+                tasks[index].markAsDone();
+                System.out.println(LINE);
+                System.out.println("Nice! I've marked this task as done:");
+                System.out.println("  " + tasks[index]);
+                System.out.println(LINE);
+                continue;
+            }
+
+            if (input.startsWith("unmark ")) {
+                int index = Integer.parseInt(input.substring(7).trim()) - 1;
+                tasks[index].markAsNotDone();
+                System.out.println(LINE);
+                System.out.println("OK, I've marked this task as not done yet:");
+                System.out.println("  " + tasks[index]);
+                System.out.println(LINE);
+                continue;
+            }
+
             // Any other input is treated as a new task description to store.
-            tasks[taskCount] = input;
+            Task task = new Task(input);
+            tasks[taskCount] = task;
             taskCount++;
             System.out.println(LINE);
             System.out.println("added: " + input);
