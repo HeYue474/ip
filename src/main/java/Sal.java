@@ -2,8 +2,8 @@ import java.util.Scanner;
 
 /**
  * Entry point for the Sal chatbot.
- * Level-3 behavior: store tasks as {@link Task} objects, list them with status icons,
- * and support {@code mark}/{@code unmark} (plus {@code bye}).
+ * Level-4 behavior: support {@code todo}, {@code deadline}, and {@code event} task types
+ * via inheritance ({@link Todo}, {@link Deadline}, {@link Event}).
  */
 public class Sal {
     private static final String LINE = "____________________________________________________________";
@@ -65,14 +65,50 @@ public class Sal {
                 continue;
             }
 
-            // Any other input is treated as a new task description to store.
-            Task task = new Task(input);
-            tasks[taskCount] = task;
-            taskCount++;
-            System.out.println(LINE);
-            System.out.println("added: " + input);
-            System.out.println(LINE);
+            if (input.startsWith("todo ")) {
+                String description = input.substring(5);
+                Task task = new Todo(description);
+                tasks[taskCount] = task;
+                taskCount++;
+                printAdded(task, taskCount);
+                continue;
+            }
+
+            if (input.startsWith("deadline ")) {
+                String rest = input.substring(9);
+                String[] parts = rest.split(" /by ", 2);
+                Task task = new Deadline(parts[0], parts[1]);
+                tasks[taskCount] = task;
+                taskCount++;
+                printAdded(task, taskCount);
+                continue;
+            }
+
+            if (input.startsWith("event ")) {
+                String rest = input.substring(6);
+                String[] fromParts = rest.split(" /from ", 2);
+                String[] toParts = fromParts[1].split(" /to ", 2);
+                Task task = new Event(fromParts[0], toParts[0], toParts[1]);
+                tasks[taskCount] = task;
+                taskCount++;
+                printAdded(task, taskCount);
+                continue;
+            }
         }
         scanner.close();
+    }
+
+    /**
+     * Prints the confirmation shown after a task is added.
+     *
+     * @param task Newly added task.
+     * @param taskCount Current number of tasks in the list.
+     */
+    private static void printAdded(Task task, int taskCount) {
+        System.out.println(LINE);
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + task);
+        System.out.println("Now you have " + taskCount + " tasks in the list.");
+        System.out.println(LINE);
     }
 }
