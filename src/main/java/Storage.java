@@ -44,18 +44,18 @@ public class Storage {
     }
 
     /**
-     * Saves all tasks to disk, creating parent directories if needed.
+     * Saves all tasks in the given list to disk, creating parent directories if needed.
      *
      * @param tasks Tasks to persist.
      * @throws IOException If writing fails.
      */
-    public void save(ArrayList<Task> tasks) throws IOException {
+    public void save(TaskList tasks) throws IOException {
         if (filePath.getParent() != null) {
             Files.createDirectories(filePath.getParent());
         }
 
         List<String> lines = new ArrayList<>();
-        for (Task task : tasks) {
+        for (Task task : tasks.getTasks()) {
             lines.add(formatLine(task));
         }
         Files.write(filePath, lines);
