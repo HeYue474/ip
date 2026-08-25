@@ -1,3 +1,5 @@
+package sal;
+
 /**
  * A task that spans a start and end date/time.
  */

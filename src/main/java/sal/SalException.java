@@ -1,3 +1,5 @@
+package sal;
+
 /**
  * Exception thrown when Sal cannot process a user command as expected.
  */

@@ -1,3 +1,5 @@
+package sal;
+
 import java.io.IOException;
 
 /**
