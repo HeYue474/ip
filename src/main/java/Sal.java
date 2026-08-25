@@ -1,12 +1,14 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * Entry point for the Sal chatbot.
- * Level-6 behavior: delete tasks, with tasks stored in an {@link ArrayList}.
+ * Level-7 behavior: persist tasks to disk and reload them on startup.
  */
 public class Sal {
     private static final String LINE = "____________________________________________________________";
+    private static final String DATA_FILE_PATH = "data/sal.txt";
 
     public static void main(String[] args) {
         String banner = " ____        _ \n"
@@ -21,7 +23,8 @@ public class Sal {
         System.out.println("What can I do for you?");
         System.out.println(LINE);
 
-        ArrayList<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(DATA_FILE_PATH);
+        ArrayList<Task> tasks = loadTasks(storage);
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -43,22 +46,22 @@ public class Sal {
                     printList(tasks);
                     break;
                 case "mark":
-                    markTask(input, tasks);
+                    markTask(input, tasks, storage);
                     break;
                 case "unmark":
-                    unmarkTask(input, tasks);
+                    unmarkTask(input, tasks, storage);
                     break;
                 case "todo":
-                    addTodo(input, tasks);
+                    addTodo(input, tasks, storage);
                     break;
                 case "deadline":
-                    addDeadline(input, tasks);
+                    addDeadline(input, tasks, storage);
                     break;
                 case "event":
-                    addEvent(input, tasks);
+                    addEvent(input, tasks, storage);
                     break;
                 case "delete":
-                    deleteTask(input, tasks);
+                    deleteTask(input, tasks, storage);
                     break;
                 default:
                     throw new SalException("Command not recognised.");
@@ -84,15 +87,41 @@ public class Sal {
     }
 
     /**
+     * Loads tasks from disk, or returns an empty list if no saved data is available.
+     */
+    private static ArrayList<Task> loadTasks(Storage storage) {
+        try {
+            return storage.load();
+        } catch (IOException e) {
+            System.out.println(LINE);
+            System.out.println("Could not load saved tasks. Starting with an empty list.");
+            System.out.println(LINE);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Persists the current task list to disk.
+     */
+    private static void saveTasks(Storage storage, ArrayList<Task> tasks) throws SalException {
+        try {
+            storage.save(tasks);
+        } catch (IOException e) {
+            throw new SalException("Could not save tasks to disk.");
+        }
+    }
+
+    /**
      * Marks a task as done. Expected format: {@code mark <task number>}.
      */
-    private static void markTask(String input, ArrayList<Task> tasks) throws SalException {
+    private static void markTask(String input, ArrayList<Task> tasks, Storage storage) throws SalException {
         try {
             int index = Integer.parseInt(input.substring("mark".length()).trim()) - 1;
             if (index < 0 || index >= tasks.size()) {
                 throw new SalException("Task number out of bounds (0-" + tasks.size());
             }
             tasks.get(index).markAsDone();
+            saveTasks(storage, tasks);
             System.out.println(LINE);
             System.out.println("Nice! I've marked this task as done:");
             System.out.println("  " + tasks.get(index));
@@ -107,13 +136,14 @@ public class Sal {
     /**
      * Marks a task as not done. Expected format: {@code unmark <task number>}.
      */
-    private static void unmarkTask(String input, ArrayList<Task> tasks) throws SalException {
+    private static void unmarkTask(String input, ArrayList<Task> tasks, Storage storage) throws SalException {
         try {
             int index = Integer.parseInt(input.substring("unmark".length()).trim()) - 1;
             if (index < 0 || index >= tasks.size()) {
                 throw new SalException("Task number out of bounds (0-" + tasks.size());
             }
             tasks.get(index).markAsNotDone();
+            saveTasks(storage, tasks);
             System.out.println(LINE);
             System.out.println("OK, I've marked this task as not done yet:");
             System.out.println("  " + tasks.get(index));
@@ -128,13 +158,14 @@ public class Sal {
     /**
      * Deletes a task. Expected format: {@code delete <task number>}.
      */
-    private static void deleteTask(String input, ArrayList<Task> tasks) throws SalException {
+    private static void deleteTask(String input, ArrayList<Task> tasks, Storage storage) throws SalException {
         try {
             int index = Integer.parseInt(input.substring("delete".length()).trim()) - 1;
             if (index < 0 || index >= tasks.size()) {
                 throw new SalException("Task number out of bounds (0-" + tasks.size());
             }
             Task removed = tasks.remove(index);
+            saveTasks(storage, tasks);
             System.out.println(LINE);
             System.out.println("Noted. I've removed this task:");
             System.out.println("  " + removed);
@@ -150,7 +181,7 @@ public class Sal {
     /**
      * Adds a todo. Expected format: {@code todo <task name>}.
      */
-    private static void addTodo(String input, ArrayList<Task> tasks) throws SalException {
+    private static void addTodo(String input, ArrayList<Task> tasks, Storage storage) throws SalException {
         try {
             String description = input.substring("todo".length()).trim();
             if (description.isEmpty()) {
@@ -158,6 +189,7 @@ public class Sal {
             }
             Task task = new Todo(description);
             tasks.add(task);
+            saveTasks(storage, tasks);
             printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
@@ -169,7 +201,7 @@ public class Sal {
     /**
      * Adds a deadline. Expected format: {@code deadline <task name> /by <date/time>}.
      */
-    private static void addDeadline(String input, ArrayList<Task> tasks) throws SalException {
+    private static void addDeadline(String input, ArrayList<Task> tasks, Storage storage) throws SalException {
         try {
             String rest = input.substring("deadline".length()).trim();
             String[] parts = rest.split(" /by ", 2);
@@ -178,6 +210,7 @@ public class Sal {
             }
             Task task = new Deadline(parts[0].trim(), parts[1].trim());
             tasks.add(task);
+            saveTasks(storage, tasks);
             printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
@@ -189,7 +222,7 @@ public class Sal {
     /**
      * Adds an event. Expected format: {@code event <task name> /from <start> /to <end>}.
      */
-    private static void addEvent(String input, ArrayList<Task> tasks) throws SalException {
+    private static void addEvent(String input, ArrayList<Task> tasks, Storage storage) throws SalException {
         try {
             String rest = input.substring("event".length()).trim();
             String[] fromParts = rest.split(" /from ", 2);
@@ -202,6 +235,7 @@ public class Sal {
             }
             Task task = new Event(fromParts[0].trim(), toParts[0].trim(), toParts[1].trim());
             tasks.add(task);
+            saveTasks(storage, tasks);
             printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
