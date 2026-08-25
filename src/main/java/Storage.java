@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,13 +85,23 @@ public class Storage {
             if (parts.length != 4) {
                 throw new IOException("Invalid deadline line: " + line);
             }
-            task = new Deadline(parts[2].trim(), parts[3].trim());
+            try {
+                task = new Deadline(parts[2].trim(), DateTimeParser.parse(parts[3].trim()));
+            } catch (DateTimeParseException e) {
+                throw new IOException("Invalid deadline date/time: " + parts[3].trim(), e);
+            }
             break;
         case "E":
             if (parts.length != 5) {
                 throw new IOException("Invalid event line: " + line);
             }
-            task = new Event(parts[2].trim(), parts[3].trim(), parts[4].trim());
+            try {
+                task = new Event(parts[2].trim(),
+                        DateTimeParser.parse(parts[3].trim()),
+                        DateTimeParser.parse(parts[4].trim()));
+            } catch (DateTimeParseException e) {
+                throw new IOException("Invalid event date/time in line: " + line, e);
+            }
             break;
         default:
             throw new IOException("Unknown task type in line: " + line);
@@ -108,13 +119,14 @@ public class Storage {
     private String formatLine(Task task) {
         String status = task.isDone ? "1" : "0";
 
-        if (task instanceof Event) {
-            Event event = (Event) task;
-            return "E | " + status + " | " + event.description + " | " + event.from + " | " + event.to;
+        if (task instanceof Event event) {
+            return "E | " + status + " | " + event.description + " | "
+                    + DateTimeParser.formatForStorage(event.from) + " | "
+                    + DateTimeParser.formatForStorage(event.to);
         }
-        if (task instanceof Deadline) {
-            Deadline deadline = (Deadline) task;
-            return "D | " + status + " | " + deadline.description + " | " + deadline.by;
+        if (task instanceof Deadline deadline) {
+            return "D | " + status + " | " + deadline.description + " | "
+                    + DateTimeParser.formatForStorage(deadline.by);
         }
         return "T | " + status + " | " + task.description;
     }

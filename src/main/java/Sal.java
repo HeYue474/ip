@@ -1,10 +1,11 @@
 import java.io.IOException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * Entry point for the Sal chatbot.
- * Level-7 behavior: persist tasks to disk and reload them on startup.
+ * Level-8 behavior: parse deadline dates/times and persist tasks to disk.
  */
 public class Sal {
     private static final String LINE = "____________________________________________________________";
@@ -208,12 +209,15 @@ public class Sal {
             if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
                 throw new SalException("Correct format: deadline <task name> /by <date/time>");
             }
-            Task task = new Deadline(parts[0].trim(), parts[1].trim());
+            TaskDateTime by = DateTimeParser.parse(parts[1].trim());
+            Task task = new Deadline(parts[0].trim(), by);
             tasks.add(task);
             saveTasks(storage, tasks);
             printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
+        } catch (DateTimeParseException e) {
+            throw new SalException(invalidDateTimeMessage());
         } catch (Exception e) {
             throw new SalException("Correct format: deadline <task name> /by <date/time>");
         }
@@ -233,15 +237,27 @@ public class Sal {
             if (toParts.length < 2 || toParts[0].trim().isEmpty() || toParts[1].trim().isEmpty()) {
                 throw new SalException("Correct format: event <task name> /from <start> /to <end>");
             }
-            Task task = new Event(fromParts[0].trim(), toParts[0].trim(), toParts[1].trim());
+            TaskDateTime from = DateTimeParser.parse(toParts[0].trim());
+            TaskDateTime to = DateTimeParser.parse(toParts[1].trim());
+            Task task = new Event(fromParts[0].trim(), from, to);
             tasks.add(task);
             saveTasks(storage, tasks);
             printAdded(task, tasks.size());
         } catch (SalException e) {
             throw e;
+        } catch (DateTimeParseException e) {
+            throw new SalException(invalidDateTimeMessage());
         } catch (Exception e) {
             throw new SalException("Correct format: event <task name> /from <start> /to <end>");
         }
+    }
+
+    /**
+     * Returns the shared error message for unsupported date/time formats.
+     */
+    private static String invalidDateTimeMessage() {
+        return "Invalid date/time format. Use yyyy-mm-dd (e.g., 2019-10-15) "
+                + "or d/M/yyyy HHmm (e.g., 2/12/2019 1800).";
     }
 
     /**
