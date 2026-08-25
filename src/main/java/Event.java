@@ -1,18 +1,18 @@
 /**
- * A task that spans a start and end date/time (stored as text).
+ * A task that spans a start and end date/time.
  */
 public class Event extends Task {
-    protected String from;
-    protected String to;
+    protected TaskDateTime from;
+    protected TaskDateTime to;
 
     /**
-     * Creates an event with the given description and start/end text.
+     * Creates an event with the given description and start/end date/times.
      *
      * @param description Text describing the event.
-     * @param from Start date/time as plain text.
-     * @param to End date/time as plain text.
+     * @param from Start date or date-time.
+     * @param to End date or date-time.
      */
-    public Event(String description, String from, String to) {
+    public Event(String description, TaskDateTime from, TaskDateTime to) {
         super(description);
         this.from = from;
         this.to = to;
@@ -20,6 +20,8 @@ public class Event extends Task {
 
     @Override
     public String toString() {
-        return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
+        return "[E]" + super.toString()
+                + " (from: " + DateTimeParser.formatForDisplay(from)
+                + " to: " + DateTimeParser.formatForDisplay(to) + ")";
     }
 }
