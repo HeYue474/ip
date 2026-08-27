@@ -144,9 +144,9 @@ public class TaskListTest {
     @Test
     public void find_matchingDescriptions_returnsMatchesInOrder() {
         TaskList tasks = new TaskList();
-        Todo readBook = todo("read book");
+        Todo readBook = createTodo("read book");
         Deadline returnBook = new Deadline("return book", new TaskDateTime(LocalDate.of(2019, 6, 6)));
-        Todo joinClub = todo("join sports club");
+        Todo joinClub = createTodo("join sports club");
         tasks.add(readBook);
         tasks.add(returnBook);
         tasks.add(joinClub);
@@ -161,8 +161,8 @@ public class TaskListTest {
     @Test
     public void find_noMatches_returnsEmptyList() {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
-        tasks.add(todo("join sports club"));
+        tasks.add(createTodo("read book"));
+        tasks.add(createTodo("join sports club"));
 
         ArrayList<Task> matches = tasks.find("meeting");
         assertTrue(matches.isEmpty());
@@ -172,9 +172,9 @@ public class TaskListTest {
     @Test
     public void find_partialWord_matchesSubstring() {
         TaskList tasks = new TaskList();
-        Todo reading = todo("reading notes");
+        Todo reading = createTodo("reading notes");
         tasks.add(reading);
-        tasks.add(todo("buy milk"));
+        tasks.add(createTodo("buy milk"));
 
         ArrayList<Task> matches = tasks.find("read");
         assertEquals(1, matches.size());
@@ -184,7 +184,7 @@ public class TaskListTest {
     @Test
     public void find_caseSensitive_doesNotMatchDifferentCase() {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
 
         assertTrue(tasks.find("Book").isEmpty());
         assertEquals(1, tasks.find("book").size());
