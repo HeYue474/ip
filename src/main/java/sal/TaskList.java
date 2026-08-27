@@ -85,6 +85,23 @@ public class TaskList {
     }
 
     /**
+     * Returns tasks whose description contains the given keyword.
+     * Matching is a case-sensitive substring search, in list order.
+     *
+     * @param keyword Text to look for in each task description.
+     * @return Matching tasks; empty if none match. The original list is unchanged.
+     */
+    public ArrayList<Task> find(String keyword) {
+        ArrayList<Task> matches = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.description.contains(keyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
+
+    /**
      * Returns how many tasks are in the list.
      *
      * @return Number of tasks.

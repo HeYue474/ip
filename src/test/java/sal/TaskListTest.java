@@ -142,6 +142,61 @@ public class TaskListTest {
     }
 
     @Test
+    public void find_matchingDescriptions_returnsMatchesInOrder() {
+        TaskList tasks = new TaskList();
+        Todo readBook = todo("read book");
+        Deadline returnBook = new Deadline("return book", new TaskDateTime(LocalDate.of(2019, 6, 6)));
+        Todo joinClub = todo("join sports club");
+        tasks.add(readBook);
+        tasks.add(returnBook);
+        tasks.add(joinClub);
+
+        ArrayList<Task> matches = tasks.find("book");
+        assertEquals(2, matches.size());
+        assertSame(readBook, matches.get(0));
+        assertSame(returnBook, matches.get(1));
+        assertEquals(3, tasks.size());
+    }
+
+    @Test
+    public void find_noMatches_returnsEmptyList() {
+        TaskList tasks = new TaskList();
+        tasks.add(todo("read book"));
+        tasks.add(todo("join sports club"));
+
+        ArrayList<Task> matches = tasks.find("meeting");
+        assertTrue(matches.isEmpty());
+        assertEquals(2, tasks.size());
+    }
+
+    @Test
+    public void find_partialWord_matchesSubstring() {
+        TaskList tasks = new TaskList();
+        Todo reading = todo("reading notes");
+        tasks.add(reading);
+        tasks.add(todo("buy milk"));
+
+        ArrayList<Task> matches = tasks.find("read");
+        assertEquals(1, matches.size());
+        assertSame(reading, matches.get(0));
+    }
+
+    @Test
+    public void find_caseSensitive_doesNotMatchDifferentCase() {
+        TaskList tasks = new TaskList();
+        tasks.add(todo("read book"));
+
+        assertTrue(tasks.find("Book").isEmpty());
+        assertEquals(1, tasks.find("book").size());
+    }
+
+    @Test
+    public void find_emptyList_returnsEmptyList() {
+        TaskList tasks = new TaskList();
+        assertTrue(tasks.find("book").isEmpty());
+    }
+
+    @Test
     public void operations_withDeadlineAndEvent_preserveTaskTypes() throws SalException {
         TaskList tasks = new TaskList();
         Deadline deadline = new Deadline("return book", new TaskDateTime(LocalDate.of(2019, 10, 15)));

@@ -120,6 +120,28 @@ public class Parser {
     }
 
     /**
+     * Parses a find command into a search keyword.
+     * Expected format: {@code find <keyword>}.
+     *
+     * @param input Full command line.
+     * @return The keyword to search for in task descriptions.
+     * @throws SalException If the keyword is missing or the format is wrong.
+     */
+    public static String parseFind(String input) throws SalException {
+        try {
+            String keyword = input.substring("find".length()).trim();
+            if (keyword.isEmpty()) {
+                throw new SalException("Correct format: find <keyword>");
+            }
+            return keyword;
+        } catch (SalException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SalException("Correct format: find <keyword>");
+        }
+    }
+
+    /**
      * Shared error message for unsupported date/time formats.
      */
     private static String invalidDateTimeMessage() {

@@ -62,6 +62,9 @@ public class Sal {
                 case "delete":
                     deleteTask(input);
                     break;
+                case "find":
+                    ui.showFoundTasks(tasks.find(Parser.parseFind(input)));
+                    break;
                 default:
                     throw new SalException("Command not recognised.");
                 }
