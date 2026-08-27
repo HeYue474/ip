@@ -36,34 +36,34 @@ public class Sal {
             try {
                 String command = Parser.getCommandWord(input);
                 switch (command) {
-                case "bye":
-                    ui.showGoodbye();
-                    ui.close();
-                    isExit = true;
-                    break;
-                case "list":
-                    ui.showTaskList(tasks);
-                    break;
-                case "mark":
-                    markTask(input);
-                    break;
-                case "unmark":
-                    unmarkTask(input);
-                    break;
-                case "todo":
-                    addTask(Parser.parseTodo(input));
-                    break;
-                case "deadline":
-                    addTask(Parser.parseDeadline(input));
-                    break;
-                case "event":
-                    addTask(Parser.parseEvent(input));
-                    break;
-                case "delete":
-                    deleteTask(input);
-                    break;
-                default:
-                    throw new SalException("Command not recognised.");
+                    case "bye":
+                        ui.showGoodbye();
+                        ui.close();
+                        isExit = true;
+                        break;
+                    case "list":
+                        ui.showTaskList(tasks);
+                        break;
+                    case "mark":
+                        markTask(input);
+                        break;
+                    case "unmark":
+                        unmarkTask(input);
+                        break;
+                    case "todo":
+                        addTask(Parser.parseTodo(input));
+                        break;
+                    case "deadline":
+                        addTask(Parser.parseDeadline(input));
+                        break;
+                    case "event":
+                        addTask(Parser.parseEvent(input));
+                        break;
+                    case "delete":
+                        deleteTask(input);
+                        break;
+                    default:
+                        throw new SalException("Command not recognised.");
                 }
             } catch (SalException e) {
                 ui.showError(e.getMessage());

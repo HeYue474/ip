@@ -77,36 +77,36 @@ public class Storage {
         Task task;
 
         switch (type) {
-        case "T":
-            if (parts.length != 3) {
-                throw new IOException("Invalid todo line: " + line);
-            }
-            task = new Todo(parts[2].trim());
-            break;
-        case "D":
-            if (parts.length != 4) {
-                throw new IOException("Invalid deadline line: " + line);
-            }
-            try {
-                task = new Deadline(parts[2].trim(), DateTimeParser.parse(parts[3].trim()));
-            } catch (DateTimeParseException e) {
-                throw new IOException("Invalid deadline date/time: " + parts[3].trim(), e);
-            }
-            break;
-        case "E":
-            if (parts.length != 5) {
-                throw new IOException("Invalid event line: " + line);
-            }
-            try {
-                task = new Event(parts[2].trim(),
-                        DateTimeParser.parse(parts[3].trim()),
-                        DateTimeParser.parse(parts[4].trim()));
-            } catch (DateTimeParseException e) {
-                throw new IOException("Invalid event date/time in line: " + line, e);
-            }
-            break;
-        default:
-            throw new IOException("Unknown task type in line: " + line);
+            case "T":
+                if (parts.length != 3) {
+                    throw new IOException("Invalid todo line: " + line);
+                }
+                task = new Todo(parts[2].trim());
+                break;
+            case "D":
+                if (parts.length != 4) {
+                    throw new IOException("Invalid deadline line: " + line);
+                }
+                try {
+                    task = new Deadline(parts[2].trim(), DateTimeParser.parse(parts[3].trim()));
+                } catch (DateTimeParseException e) {
+                    throw new IOException("Invalid deadline date/time: " + parts[3].trim(), e);
+                }
+                break;
+            case "E":
+                if (parts.length != 5) {
+                    throw new IOException("Invalid event line: " + line);
+                }
+                try {
+                    task = new Event(parts[2].trim(),
+                            DateTimeParser.parse(parts[3].trim()),
+                            DateTimeParser.parse(parts[4].trim()));
+                } catch (DateTimeParseException e) {
+                    throw new IOException("Invalid event date/time in line: " + line, e);
+                }
+                break;
+            default:
+                throw new IOException("Unknown task type in line: " + line);
         }
 
         if (isDone) {
