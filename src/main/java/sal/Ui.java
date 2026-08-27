@@ -101,6 +101,21 @@ public class Ui {
     }
 
     /**
+     * Prints tasks whose descriptions matched a find search.
+     * Matching tasks are numbered from 1 in the order they appear in the list.
+     *
+     * @param matches Tasks to display.
+     */
+    public void showFoundTasks(ArrayList<Task> matches) {
+        showLine();
+        System.out.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < matches.size(); i++) {
+            System.out.println((i + 1) + "." + matches.get(i));
+        }
+        showLine();
+    }
+
+    /**
      * Confirms that a task was added.
      *
      * @param task Newly added task.

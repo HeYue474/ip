@@ -25,6 +25,7 @@ public class ParserTest {
         assertEquals("todo", Parser.getCommandWord("todo read book"));
         assertEquals("mark", Parser.getCommandWord("mark 2"));
         assertEquals("deadline", Parser.getCommandWord("deadline return book /by 2019-10-15"));
+        assertEquals("find", Parser.getCommandWord("find book"));
     }
 
     @Test
@@ -163,6 +164,33 @@ public class ParserTest {
         SalException exception = assertThrows(SalException.class, () ->
                 Parser.parseEvent("event /from 2019-10-15 /to 2019-10-16"));
         assertEquals("Correct format: event <task name> /from <start> /to <end>", exception.getMessage());
+    }
+
+    @Test
+    public void parseFind_validKeyword_returnsKeyword() throws SalException {
+        assertEquals("book", Parser.parseFind("find book"));
+    }
+
+    @Test
+    public void parseFind_multiWordKeyword_returnsFullKeyword() throws SalException {
+        assertEquals("return book", Parser.parseFind("find return book"));
+    }
+
+    @Test
+    public void parseFind_extraSpaces_trimsKeyword() throws SalException {
+        assertEquals("book", Parser.parseFind("find    book   "));
+    }
+
+    @Test
+    public void parseFind_missingKeyword_exceptionThrown() {
+        SalException exception = assertThrows(SalException.class, () -> Parser.parseFind("find"));
+        assertEquals("Correct format: find <keyword>", exception.getMessage());
+    }
+
+    @Test
+    public void parseFind_whitespaceOnlyKeyword_exceptionThrown() {
+        SalException exception = assertThrows(SalException.class, () -> Parser.parseFind("find    "));
+        assertEquals("Correct format: find <keyword>", exception.getMessage());
     }
 
     @Test
