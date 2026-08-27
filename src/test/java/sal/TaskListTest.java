@@ -1,21 +1,21 @@
 package sal;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+
+import org.junit.jupiter.api.Test;
+
 /**
  * Tests {@link TaskList} add, lookup, mark, and delete behaviour, including invalid indexes.
  */
 public class TaskListTest {
-    private Todo todo(String description) {
+    private Todo createTodo(String description) {
         return new Todo(description);
     }
 
@@ -28,10 +28,10 @@ public class TaskListTest {
     @Test
     public void constructor_existingTasks_copiesList() throws SalException {
         ArrayList<Task> original = new ArrayList<>();
-        original.add(todo("read book"));
+        original.add(createTodo("read book"));
         TaskList tasks = new TaskList(original);
 
-        original.add(todo("extra task"));
+        original.add(createTodo("extra task"));
         assertEquals(1, tasks.size());
         assertEquals("read book", tasks.get(0).description);
     }
@@ -39,8 +39,8 @@ public class TaskListTest {
     @Test
     public void add_multipleTasks_appendsInOrder() throws SalException {
         TaskList tasks = new TaskList();
-        Todo first = todo("first");
-        Todo second = todo("second");
+        Todo first = createTodo("first");
+        Todo second = createTodo("second");
         tasks.add(first);
         tasks.add(second);
 
@@ -52,7 +52,7 @@ public class TaskListTest {
     @Test
     public void get_validIndex_returnsTask() throws SalException {
         TaskList tasks = new TaskList();
-        Todo expected = todo("read book");
+        Todo expected = createTodo("read book");
         tasks.add(expected);
         assertSame(expected, tasks.get(0));
     }
@@ -60,7 +60,7 @@ public class TaskListTest {
     @Test
     public void get_negativeIndex_exceptionThrown() {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
         SalException exception = assertThrows(SalException.class, () -> tasks.get(-1));
         assertTrue(exception.getMessage().contains("out of bounds"));
     }
@@ -68,7 +68,7 @@ public class TaskListTest {
     @Test
     public void get_indexEqualToSize_exceptionThrown() {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
         SalException exception = assertThrows(SalException.class, () -> tasks.get(1));
         assertTrue(exception.getMessage().contains("out of bounds"));
     }
@@ -82,9 +82,9 @@ public class TaskListTest {
     @Test
     public void delete_validIndex_removesAndReturnsTask() throws SalException {
         TaskList tasks = new TaskList();
-        Todo first = todo("first");
-        Todo second = todo("second");
-        Todo third = todo("third");
+        Todo first = createTodo("first");
+        Todo second = createTodo("second");
+        Todo third = createTodo("third");
         tasks.add(first);
         tasks.add(second);
         tasks.add(third);
@@ -99,7 +99,7 @@ public class TaskListTest {
     @Test
     public void delete_invalidIndex_exceptionThrown() {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
         assertThrows(SalException.class, () -> tasks.delete(-1));
         assertThrows(SalException.class, () -> tasks.delete(1));
         assertEquals(1, tasks.size());
@@ -108,7 +108,7 @@ public class TaskListTest {
     @Test
     public void markAsDone_validIndex_marksTask() throws SalException {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
 
         Task marked = tasks.markAsDone(0);
         assertTrue(marked.isDone);
@@ -119,7 +119,7 @@ public class TaskListTest {
     @Test
     public void markAsDone_invalidIndex_exceptionThrown() {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
         assertThrows(SalException.class, () -> tasks.markAsDone(3));
         assertFalse(tasks.getTasks().get(0).isDone);
     }
@@ -127,7 +127,7 @@ public class TaskListTest {
     @Test
     public void markAsNotDone_afterMarking_unmarksTask() throws SalException {
         TaskList tasks = new TaskList();
-        tasks.add(todo("read book"));
+        tasks.add(createTodo("read book"));
         tasks.markAsDone(0);
 
         Task unmarked = tasks.markAsNotDone(0);

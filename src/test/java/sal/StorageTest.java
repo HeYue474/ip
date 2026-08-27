@@ -1,5 +1,11 @@
 package sal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,12 +14,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 /**
  * Tests {@link Storage} save/load round-trips and handling of missing or corrupt data files.
  */
@@ -21,19 +21,19 @@ public class StorageTest {
     @TempDir
     Path tempDir;
 
-    private Storage storageAt(String fileName) {
+    private Storage createStorage(String fileName) {
         return new Storage(tempDir.resolve(fileName).toString());
     }
 
     @Test
     public void load_missingFile_returnsEmptyList() throws IOException {
-        Storage storage = storageAt("missing.txt");
+        Storage storage = createStorage("missing.txt");
         assertTrue(storage.load().isEmpty());
     }
 
     @Test
     public void saveThenLoad_todoDeadlineAndEvent_roundTripsAllFields() throws Exception {
-        Storage storage = storageAt("sal.txt");
+        Storage storage = createStorage("sal.txt");
         TaskList tasks = new TaskList();
         Todo todo = new Todo("read book");
         todo.markAsDone();
