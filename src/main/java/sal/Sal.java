@@ -13,6 +13,15 @@ public class Sal {
     private final Ui ui;
     private final Storage storage;
     private final TaskList tasks;
+    private boolean isExit;
+
+    /**
+     * Creates Sal using the default data file path.
+     * JavaFX needs this no-argument constructor to create the application.
+     */
+    public Sal() {
+        this(DATA_FILE_PATH);
+    }
 
     /**
      * Creates Sal with UI, storage, and a task list loaded from disk when possible.
@@ -30,48 +39,48 @@ public class Sal {
      */
     public void run() {
         ui.showWelcome();
-        boolean isExit = false;
+        isExit = false;
         while (!isExit) {
             String input = ui.readCommand();
             try {
-                String command = Parser.getCommandWord(input);
-                switch (command) {
-                    case "bye":
-                        ui.showGoodbye();
-                        ui.close();
-                        isExit = true;
-                        break;
-                    case "list":
-                        ui.showTaskList(tasks);
-                        break;
-                    case "mark":
-                        markTask(input);
-                        break;
-                    case "unmark":
-                        unmarkTask(input);
-                        break;
-                    case "todo":
-                        addTask(Parser.parseTodo(input));
-                        break;
-                    case "deadline":
-                        addTask(Parser.parseDeadline(input));
-                        break;
-                    case "event":
-                        addTask(Parser.parseEvent(input));
-                        break;
-                    case "delete":
-                        deleteTask(input);
-                        break;
-                    case "find":
-                        ui.showFoundTasks(tasks.find(Parser.parseFind(input)));
-                        break;
-                    default:
-                        throw new SalException("Command not recognised.");
-                }
+                ui.showMessage(handleCommand(input));
             } catch (SalException e) {
                 ui.showError(e.getMessage());
             }
         }
+        ui.close();
+    }
+
+    /**
+     * Returns the greeting shown when the GUI opens.
+     *
+     * @return Welcome text without the ASCII banner.
+     */
+    public String getWelcomeMessage() {
+        return ui.formatWelcome();
+    }
+
+    /**
+     * Generates a response for the user's chat message.
+     *
+     * @param input Raw user input from the GUI.
+     * @return Reply to display in a dialog box.
+     */
+    public String getResponse(String input) {
+        try {
+            return handleCommand(input.trim());
+        } catch (SalException e) {
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * Returns whether the user has issued the bye command.
+     *
+     * @return {@code true} if the session should end.
+     */
+    public boolean isExit() {
+        return isExit;
     }
 
     /**
@@ -97,31 +106,58 @@ public class Sal {
         }
     }
 
-    private void markTask(String input) throws SalException {
+    private String handleCommand(String input) throws SalException {
+        String command = Parser.getCommandWord(input);
+        switch (command) {
+            case "bye":
+                isExit = true;
+                return ui.formatGoodbye();
+            case "list":
+                return ui.formatTaskList(tasks);
+            case "mark":
+                return markTask(input);
+            case "unmark":
+                return unmarkTask(input);
+            case "todo":
+                return addTask(Parser.parseTodo(input));
+            case "deadline":
+                return addTask(Parser.parseDeadline(input));
+            case "event":
+                return addTask(Parser.parseEvent(input));
+            case "delete":
+                return deleteTask(input);
+            case "find":
+                return ui.formatFoundTasks(tasks.find(Parser.parseFind(input)));
+            default:
+                throw new SalException("Command not recognised.");
+        }
+    }
+
+    private String markTask(String input) throws SalException {
         int index = Parser.parseTaskIndex(input, "mark", "Correct format: mark <task number>");
         Task task = tasks.markAsDone(index);
         saveTasks();
-        ui.showMarked(task);
+        return ui.formatMarked(task);
     }
 
-    private void unmarkTask(String input) throws SalException {
+    private String unmarkTask(String input) throws SalException {
         int index = Parser.parseTaskIndex(input, "unmark", "Correct format: unmark <task number>");
         Task task = tasks.markAsNotDone(index);
         saveTasks();
-        ui.showUnmarked(task);
+        return ui.formatUnmarked(task);
     }
 
-    private void deleteTask(String input) throws SalException {
+    private String deleteTask(String input) throws SalException {
         int index = Parser.parseTaskIndex(input, "delete", "Correct format: delete <task number>");
         Task removed = tasks.delete(index);
         saveTasks();
-        ui.showTaskDeleted(removed, tasks.size());
+        return ui.formatTaskDeleted(removed, tasks.size());
     }
 
-    private void addTask(Task task) throws SalException {
+    private String addTask(Task task) throws SalException {
         tasks.add(task);
         saveTasks();
-        ui.showTaskAdded(task, tasks.size());
+        return ui.formatTaskAdded(task, tasks.size());
     }
 
     /**
