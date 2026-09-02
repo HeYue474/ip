@@ -15,14 +15,7 @@ public class Ui {
             + " ___) | (_| | |\n"
             + "|____/ \\__,_|_|\n";
 
-    private final Scanner scanner;
-
-    /**
-     * Creates a UI that reads from standard input.
-     */
-    public Ui() {
-        this.scanner = new Scanner(System.in);
-    }
+    private Scanner scanner;
 
     /**
      * Prints the welcome banner and greeting.
@@ -30,8 +23,7 @@ public class Ui {
     public void showWelcome() {
         showLine();
         System.out.println(BANNER);
-        System.out.println("Hello! I'm Sal.");
-        System.out.println("What can I do for you?");
+        System.out.println(formatWelcome());
         showLine();
     }
 
@@ -39,9 +31,16 @@ public class Ui {
      * Prints the goodbye message.
      */
     public void showGoodbye() {
-        showLine();
-        System.out.println("Bye. Hope to see you again soon!");
-        showLine();
+        printBoxed(formatGoodbye());
+    }
+
+    /**
+     * Prints a response between divider lines.
+     *
+     * @param message Text to show the user.
+     */
+    public void showMessage(String message) {
+        printBoxed(message);
     }
 
     /**
@@ -57,6 +56,9 @@ public class Ui {
      * @return The trimmed command line.
      */
     public String readCommand() {
+        if (scanner == null) {
+            scanner = new Scanner(System.in);
+        }
         return scanner.nextLine().trim();
     }
 
@@ -64,7 +66,10 @@ public class Ui {
      * Closes the input scanner when the app exits.
      */
     public void close() {
-        scanner.close();
+        if (scanner != null) {
+            scanner.close();
+            scanner = null;
+        }
     }
 
     /**
@@ -73,9 +78,7 @@ public class Ui {
      * @param message Error text to show the user.
      */
     public void showError(String message) {
-        showLine();
-        System.out.println(message);
-        showLine();
+        printBoxed(message);
     }
 
     /**
@@ -91,13 +94,7 @@ public class Ui {
      * @param tasks Current tasks.
      */
     public void showTaskList(TaskList tasks) {
-        showLine();
-        System.out.println("Here are the tasks in your list:");
-        ArrayList<Task> list = tasks.getTasks();
-        for (int i = 0; i < list.size(); i++) {
-            System.out.println((i + 1) + "." + list.get(i));
-        }
-        showLine();
+        printBoxed(formatTaskList(tasks));
     }
 
     /**
@@ -107,12 +104,7 @@ public class Ui {
      * @param matches Tasks to display.
      */
     public void showFoundTasks(ArrayList<Task> matches) {
-        showLine();
-        System.out.println("Here are the matching tasks in your list:");
-        for (int i = 0; i < matches.size(); i++) {
-            System.out.println((i + 1) + "." + matches.get(i));
-        }
-        showLine();
+        printBoxed(formatFoundTasks(matches));
     }
 
     /**
@@ -122,11 +114,7 @@ public class Ui {
      * @param taskCount Current number of tasks.
      */
     public void showTaskAdded(Task task, int taskCount) {
-        showLine();
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
-        showLine();
+        printBoxed(formatTaskAdded(task, taskCount));
     }
 
     /**
@@ -136,11 +124,7 @@ public class Ui {
      * @param taskCount Remaining number of tasks.
      */
     public void showTaskDeleted(Task task, int taskCount) {
-        showLine();
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
-        showLine();
+        printBoxed(formatTaskDeleted(task, taskCount));
     }
 
     /**
@@ -149,10 +133,7 @@ public class Ui {
      * @param task Updated task.
      */
     public void showMarked(Task task) {
-        showLine();
-        System.out.println("Nice! I've marked this task as done:");
-        System.out.println("  " + task);
-        showLine();
+        printBoxed(formatMarked(task));
     }
 
     /**
@@ -161,9 +142,55 @@ public class Ui {
      * @param task Updated task.
      */
     public void showUnmarked(Task task) {
+        printBoxed(formatUnmarked(task));
+    }
+
+    String formatWelcome() {
+        return "Hello! I'm Sal.\nWhat can I do for you?";
+    }
+
+    String formatGoodbye() {
+        return "Bye. Hope to see you again soon!";
+    }
+
+    String formatTaskList(TaskList tasks) {
+        StringBuilder result = new StringBuilder("Here are the tasks in your list:");
+        ArrayList<Task> list = tasks.getTasks();
+        for (int i = 0; i < list.size(); i++) {
+            result.append('\n').append(i + 1).append('.').append(list.get(i));
+        }
+        return result.toString();
+    }
+
+    String formatFoundTasks(ArrayList<Task> matches) {
+        StringBuilder result = new StringBuilder("Here are the matching tasks in your list:");
+        for (int i = 0; i < matches.size(); i++) {
+            result.append('\n').append(i + 1).append('.').append(matches.get(i));
+        }
+        return result.toString();
+    }
+
+    String formatTaskAdded(Task task, int taskCount) {
+        return "Got it. I've added this task:\n  " + task
+                + "\nNow you have " + taskCount + " tasks in the list.";
+    }
+
+    String formatTaskDeleted(Task task, int taskCount) {
+        return "Noted. I've removed this task:\n  " + task
+                + "\nNow you have " + taskCount + " tasks in the list.";
+    }
+
+    String formatMarked(Task task) {
+        return "Nice! I've marked this task as done:\n  " + task;
+    }
+
+    String formatUnmarked(Task task) {
+        return "OK, I've marked this task as not done yet:\n  " + task;
+    }
+
+    private void printBoxed(String message) {
         showLine();
-        System.out.println("OK, I've marked this task as not done yet:");
-        System.out.println("  " + task);
+        System.out.println(message);
         showLine();
     }
 }
