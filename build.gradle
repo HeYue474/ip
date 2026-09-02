@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.gradleup.shadow' version '9.5.1'
+    id 'checkstyle'
 }
 
 java {
@@ -34,6 +35,10 @@ test {
         showStackTraces = true
         showStandardStreams = false
     }
+}
+
+checkstyle {
+    toolVersion = '11.0.0'
 }
 
 application {
