@@ -12,6 +12,19 @@ import java.util.List;
  * Reads and writes tasks to a file on disk.
  */
 public class Storage {
+    /** File markers for task type: todo, deadline, and event. */
+    private static final String TODO_TYPE = "T";
+    private static final String DEADLINE_TYPE = "D";
+    private static final String EVENT_TYPE = "E";
+
+    /** File markers for done status. */
+    private static final String DONE_MARKER = "1";
+    private static final String NOT_DONE_MARKER = "0";
+
+    /** Literal separator written to disk; {@link #FIELD_SPLIT_REGEX} is the matching split pattern. */
+    private static final String FIELD_SEPARATOR = " | ";
+    private static final String FIELD_SPLIT_REGEX = " \\| ";
+
     private final Path filePath;
 
     /**
@@ -67,23 +80,23 @@ public class Storage {
      * Converts one line from the data file into a {@link Task}.
      */
     private Task parseLine(String line) throws IOException {
-        String[] parts = line.split(" \\| ", -1);
+        String[] parts = line.split(FIELD_SPLIT_REGEX, -1);
         if (parts.length < 3) {
             throw new IOException("Invalid task line: " + line);
         }
 
         String type = parts[0].trim();
-        boolean isDone = parts[1].trim().equals("1");
+        boolean isDone = parts[1].trim().equals(DONE_MARKER);
         Task task;
 
         switch (type) {
-            case "T":
+            case TODO_TYPE:
                 if (parts.length != 3) {
                     throw new IOException("Invalid todo line: " + line);
                 }
                 task = new Todo(parts[2].trim());
                 break;
-            case "D":
+            case DEADLINE_TYPE:
                 if (parts.length != 4) {
                     throw new IOException("Invalid deadline line: " + line);
                 }
@@ -93,7 +106,7 @@ public class Storage {
                     throw new IOException("Invalid deadline date/time: " + parts[3].trim(), e);
                 }
                 break;
-            case "E":
+            case EVENT_TYPE:
                 if (parts.length != 5) {
                     throw new IOException("Invalid event line: " + line);
                 }
@@ -119,19 +132,17 @@ public class Storage {
      * Converts a {@link Task} into one line for the data file.
      */
     private String formatLine(Task task) {
-        String status = task.isDone ? "1" : "0";
+        String status = task.isDone ? DONE_MARKER : NOT_DONE_MARKER;
 
         if (task instanceof Event event) {
-            return "E | " + status + " | " + event.description + " | "
-                    + DateTimeParser.formatForStorage(event.from) + " | "
-                    + DateTimeParser.formatForStorage(event.to);
+            return EVENT_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + event.description
+                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(event.from)
+                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(event.to);
         }
         if (task instanceof Deadline deadline) {
-            return "D | " + status + " | " + deadline.description + " | "
-                    + DateTimeParser.formatForStorage(deadline.by);
+            return DEADLINE_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + deadline.description
+                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(deadline.by);
         }
-        // Event and Deadline are handled above; the only remaining type we support is Todo.
-        assert task instanceof Todo : "Unhandled task type when writing to disk: " + task.getClass();
-        return "T | " + status + " | " + task.description;
+        return TODO_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + task.description;
     }
 }
