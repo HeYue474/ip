@@ -130,6 +130,8 @@ public class Storage {
             return "D | " + status + " | " + deadline.description + " | "
                     + DateTimeParser.formatForStorage(deadline.by);
         }
+        // Event and Deadline are handled above; the only remaining type we support is Todo.
+        assert task instanceof Todo : "Unhandled task type when writing to disk: " + task.getClass();
         return "T | " + status + " | " + task.description;
     }
 }
