@@ -38,6 +38,7 @@ dependencies {
 }
 
 test {
+    jvmArgs '-ea'
     useJUnitPlatform()
 
     testLogging {
@@ -71,5 +72,6 @@ shadowJar {
 }
 
 run {
+    jvmArgs '-ea'
     standardInput = System.in
 }
