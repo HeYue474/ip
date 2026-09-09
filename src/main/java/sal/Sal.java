@@ -155,6 +155,8 @@ public class Sal {
     }
 
     private String addTask(Task task) throws SalException {
+        // Parser already validated the command, so a null task would be a bug in our code.
+        assert task != null : "Task parsed from a valid command should not be null";
         tasks.add(task);
         saveTasks();
         return ui.formatTaskAdded(task, tasks.size());
