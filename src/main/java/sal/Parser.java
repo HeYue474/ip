@@ -34,8 +34,8 @@ public class Parser {
     public static int parseTaskIndex(String input, String commandWord, String formatHint)
             throws SalException {
         try {
-            return Integer.parseInt(input.substring(commandWord.length()).trim()) - 1;
-        } catch (Exception e) {
+            return Integer.parseInt(extractArgument(input, commandWord)) - 1;
+        } catch (NumberFormatException e) {
             throw new SalException(formatHint);
         }
     }
@@ -49,17 +49,11 @@ public class Parser {
      * @throws SalException If the description is missing or the format is wrong.
      */
     public static Todo parseTodo(String input) throws SalException {
-        try {
-            String description = input.substring("todo".length()).trim();
-            if (description.isEmpty()) {
-                throw new SalException("Correct format: todo <task name>");
-            }
-            return new Todo(description);
-        } catch (SalException e) {
-            throw e;
-        } catch (Exception e) {
+        String description = extractArgument(input, "todo");
+        if (description.isEmpty()) {
             throw new SalException("Correct format: todo <task name>");
         }
+        return new Todo(description);
     }
 
     /**
@@ -71,20 +65,16 @@ public class Parser {
      * @throws SalException If the format or date/time is invalid.
      */
     public static Deadline parseDeadline(String input) throws SalException {
+        String rest = extractArgument(input, "deadline");
+        String[] parts = rest.split(" /by ", 2);
+        if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
+            throw new SalException("Correct format: deadline <task name> /by <date/time>");
+        }
         try {
-            String rest = input.substring("deadline".length()).trim();
-            String[] parts = rest.split(" /by ", 2);
-            if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-                throw new SalException("Correct format: deadline <task name> /by <date/time>");
-            }
             TaskDateTime by = DateTimeParser.parse(parts[1].trim());
             return new Deadline(parts[0].trim(), by);
-        } catch (SalException e) {
-            throw e;
         } catch (DateTimeParseException e) {
             throw new SalException(invalidDateTimeMessage());
-        } catch (Exception e) {
-            throw new SalException("Correct format: deadline <task name> /by <date/time>");
         }
     }
 
@@ -97,25 +87,21 @@ public class Parser {
      * @throws SalException If the format or date/time is invalid.
      */
     public static Event parseEvent(String input) throws SalException {
+        String rest = extractArgument(input, "event");
+        String[] fromParts = rest.split(" /from ", 2);
+        if (fromParts.length < 2 || fromParts[0].trim().isEmpty()) {
+            throw new SalException("Correct format: event <task name> /from <start> /to <end>");
+        }
+        String[] toParts = fromParts[1].split(" /to ", 2);
+        if (toParts.length < 2 || toParts[0].trim().isEmpty() || toParts[1].trim().isEmpty()) {
+            throw new SalException("Correct format: event <task name> /from <start> /to <end>");
+        }
         try {
-            String rest = input.substring("event".length()).trim();
-            String[] fromParts = rest.split(" /from ", 2);
-            if (fromParts.length < 2 || fromParts[0].trim().isEmpty()) {
-                throw new SalException("Correct format: event <task name> /from <start> /to <end>");
-            }
-            String[] toParts = fromParts[1].split(" /to ", 2);
-            if (toParts.length < 2 || toParts[0].trim().isEmpty() || toParts[1].trim().isEmpty()) {
-                throw new SalException("Correct format: event <task name> /from <start> /to <end>");
-            }
             TaskDateTime from = DateTimeParser.parse(toParts[0].trim());
             TaskDateTime to = DateTimeParser.parse(toParts[1].trim());
             return new Event(fromParts[0].trim(), from, to);
-        } catch (SalException e) {
-            throw e;
         } catch (DateTimeParseException e) {
             throw new SalException(invalidDateTimeMessage());
-        } catch (Exception e) {
-            throw new SalException("Correct format: event <task name> /from <start> /to <end>");
         }
     }
 
@@ -128,17 +114,11 @@ public class Parser {
      * @throws SalException If the keyword is missing or the format is wrong.
      */
     public static String parseFind(String input) throws SalException {
-        try {
-            String keyword = input.substring("find".length()).trim();
-            if (keyword.isEmpty()) {
-                throw new SalException("Correct format: find <keyword>");
-            }
-            return keyword;
-        } catch (SalException e) {
-            throw e;
-        } catch (Exception e) {
+        String keyword = extractArgument(input, "find");
+        if (keyword.isEmpty()) {
             throw new SalException("Correct format: find <keyword>");
         }
+        return keyword;
     }
 
     /**
@@ -147,5 +127,16 @@ public class Parser {
     private static String invalidDateTimeMessage() {
         return "Invalid date/time format. Use yyyy-mm-dd (e.g., 2019-10-15) "
                 + "or d/M/yyyy HHmm (e.g., 2/12/2019 1800).";
+    }
+
+    /**
+     * Returns the text after {@code commandWord}, trimmed.
+     * Empty if the command has no argument.
+     */
+    private static String extractArgument(String input, String commandWord) {
+        if (input.length() <= commandWord.length()) {
+            return "";
+        }
+        return input.substring(commandWord.length()).trim();
     }
 }
