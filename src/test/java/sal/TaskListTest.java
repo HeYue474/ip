@@ -142,6 +142,25 @@ public class TaskListTest {
     }
 
     @Test
+    public void tag_validIndex_addsTag() throws SalException {
+        TaskList tasks = new TaskList();
+        tasks.add(createTodo("read book"));
+
+        Task tagged = tasks.tag(0, "fun");
+        assertEquals(1, tagged.getTags().size());
+        assertEquals("fun", tagged.getTags().get(0));
+        assertEquals("fun", tasks.get(0).getTags().get(0));
+    }
+
+    @Test
+    public void tag_invalidIndex_exceptionThrown() {
+        TaskList tasks = new TaskList();
+        tasks.add(createTodo("read book"));
+        assertThrows(SalException.class, () -> tasks.tag(1, "fun"));
+        assertTrue(tasks.getTasks().get(0).getTags().isEmpty());
+    }
+
+    @Test
     public void find_matchingDescriptions_returnsMatchesInOrder() {
         TaskList tasks = new TaskList();
         Todo readBook = createTodo("read book");

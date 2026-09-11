@@ -80,6 +80,45 @@ public class SalTest {
     }
 
     @Test
+    public void getResponse_tag_addsTagToExistingTask() {
+        sal.getResponse("todo read book");
+        String response = sal.getResponse("tag 1 fun");
+        assertTrue(response.contains("OK, I've tagged this task:"));
+        assertTrue(response.contains("[T][ ] read book #fun"));
+        assertTrue(sal.getResponse("list").contains("1.[T][ ] read book #fun"));
+    }
+
+    @Test
+    public void getResponse_tagWithHashPrefix_stripsHash() {
+        sal.getResponse("todo read book");
+        String response = sal.getResponse("tag 1 #urgent");
+        assertTrue(response.contains("[T][ ] read book #urgent"));
+    }
+
+    @Test
+    public void getResponse_tagTwice_appendsBothTags() {
+        sal.getResponse("todo read book");
+        sal.getResponse("tag 1 fun");
+        sal.getResponse("tag 1 cs2103");
+        assertTrue(sal.getResponse("list").contains("1.[T][ ] read book #fun #cs2103"));
+    }
+
+    @Test
+    public void getResponse_duplicateTag_returnsError() {
+        sal.getResponse("todo read book");
+        sal.getResponse("tag 1 fun");
+        assertEquals("This task already has the tag #fun", sal.getResponse("tag 1 fun"));
+    }
+
+    @Test
+    public void getResponse_tagPersistsAcrossReload() {
+        sal.getResponse("todo read book");
+        sal.getResponse("tag 1 fun");
+        Sal reloaded = new Sal(tempDir.resolve("sal.txt").toString());
+        assertTrue(reloaded.getResponse("list").contains("#fun"));
+    }
+
+    @Test
     public void getResponse_unknownCommand_returnsError() {
         assertEquals("Command not recognised.", sal.getResponse("blah"));
     }

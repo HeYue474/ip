@@ -85,6 +85,20 @@ public class TaskList {
     }
 
     /**
+     * Adds a tag to the task at the given index.
+     *
+     * @param index Zero-based index.
+     * @param tagName Tag name without a leading {@code #}.
+     * @return The updated task.
+     * @throws SalException If the index is out of range or the tag cannot be added.
+     */
+    public Task tag(int index, String tagName) throws SalException {
+        Task task = get(index);
+        task.addTag(tagName);
+        return task;
+    }
+
+    /**
      * Returns tasks whose description contains the given keyword.
      * Matching is a case-sensitive substring search, in list order.
      *

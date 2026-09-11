@@ -71,6 +71,27 @@ public class StorageTest {
     }
 
     @Test
+    public void saveThenLoad_tasksWithTags_roundTripsTags() throws Exception {
+        Storage storage = createStorage("tagged.txt");
+        TaskList tasks = new TaskList();
+        Todo todo = new Todo("read book");
+        todo.addTag("fun");
+        todo.addTag("cs2103");
+        Deadline deadline = Parser.parseDeadline("deadline return book /by 2019-10-15");
+        deadline.addTag("urgent");
+        tasks.add(todo);
+        tasks.add(deadline);
+
+        storage.save(tasks);
+        TaskList loaded = new TaskList(storage.load());
+
+        assertEquals(2, loaded.get(0).getTags().size());
+        assertEquals("fun", loaded.get(0).getTags().get(0));
+        assertEquals("cs2103", loaded.get(0).getTags().get(1));
+        assertEquals("urgent", loaded.get(1).getTags().get(0));
+    }
+
+    @Test
     public void save_nestedPath_createsMissingParentDirectories() throws Exception {
         Storage storage = new Storage(tempDir.resolve("nested/data/sal.txt").toString());
         TaskList tasks = new TaskList();
@@ -79,6 +100,17 @@ public class StorageTest {
         storage.save(tasks);
         assertTrue(Files.exists(tempDir.resolve("nested/data/sal.txt")));
         assertEquals(1, storage.load().size());
+    }
+
+    @Test
+    public void load_todoWithoutTagsField_loadsEmptyTags() throws Exception {
+        Path file = tempDir.resolve("legacy.txt");
+        Files.write(file, List.of("T | 0 | read book"));
+        Storage storage = new Storage(file.toString());
+
+        Task loaded = new TaskList(storage.load()).get(0);
+        assertEquals("read book", loaded.description);
+        assertTrue(loaded.getTags().isEmpty());
     }
 
     @Test
@@ -111,7 +143,7 @@ public class StorageTest {
     @Test
     public void load_todoWithExtraFields_exceptionThrown() throws IOException {
         Path file = tempDir.resolve("sal.txt");
-        Files.write(file, List.of("T | 0 | read book | extra"));
+        Files.write(file, List.of("T | 0 | read book | extra | more"));
         Storage storage = new Storage(file.toString());
         assertThrows(IOException.class, storage::load);
     }
