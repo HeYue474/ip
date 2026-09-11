@@ -91,13 +91,16 @@ public class Storage {
 
         switch (type) {
             case TODO_TYPE:
-                if (parts.length != 3) {
+                if (parts.length != 3 && parts.length != 4) {
                     throw new IOException("Invalid todo line: " + line);
                 }
                 task = new Todo(parts[2].trim());
+                if (parts.length == 4) {
+                    applyTags(task, parts[3].trim(), line);
+                }
                 break;
             case DEADLINE_TYPE:
-                if (parts.length != 4) {
+                if (parts.length != 4 && parts.length != 5) {
                     throw new IOException("Invalid deadline line: " + line);
                 }
                 try {
@@ -105,9 +108,12 @@ public class Storage {
                 } catch (DateTimeParseException e) {
                     throw new IOException("Invalid deadline date/time: " + parts[3].trim(), e);
                 }
+                if (parts.length == 5) {
+                    applyTags(task, parts[4].trim(), line);
+                }
                 break;
             case EVENT_TYPE:
-                if (parts.length != 5) {
+                if (parts.length != 5 && parts.length != 6) {
                     throw new IOException("Invalid event line: " + line);
                 }
                 try {
@@ -116,6 +122,9 @@ public class Storage {
                             DateTimeParser.parse(parts[4].trim()));
                 } catch (DateTimeParseException e) {
                     throw new IOException("Invalid event date/time in line: " + line, e);
+                }
+                if (parts.length == 6) {
+                    applyTags(task, parts[5].trim(), line);
                 }
                 break;
             default:
@@ -130,19 +139,51 @@ public class Storage {
 
     /**
      * Converts a {@link Task} into one line for the data file.
+     * Tags, if any, are stored as a final comma-separated field so older files without tags still load.
      */
     private String formatLine(Task task) {
         String status = task.isDone ? DONE_MARKER : NOT_DONE_MARKER;
+        String tagsField = formatTagsField(task);
 
         if (task instanceof Event event) {
             return EVENT_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + event.description
                     + FIELD_SEPARATOR + DateTimeParser.formatForStorage(event.from)
-                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(event.to);
+                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(event.to)
+                    + tagsField;
         }
         if (task instanceof Deadline deadline) {
             return DEADLINE_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + deadline.description
-                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(deadline.by);
+                    + FIELD_SEPARATOR + DateTimeParser.formatForStorage(deadline.by)
+                    + tagsField;
         }
-        return TODO_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + task.description;
+        return TODO_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + task.description + tagsField;
+    }
+
+    /**
+     * Applies comma-separated tags from a saved line onto {@code task}.
+     */
+    private void applyTags(Task task, String tagsField, String line) throws IOException {
+        if (tagsField.isEmpty()) {
+            return;
+        }
+        String[] tagNames = tagsField.split(",", -1);
+        for (String tagName : tagNames) {
+            try {
+                task.addTag(tagName.trim());
+            } catch (SalException e) {
+                throw new IOException("Invalid tag in line: " + line, e);
+            }
+        }
+    }
+
+    /**
+     * Returns a leading field separator plus comma-separated tags, or empty if there are no tags.
+     */
+    private String formatTagsField(Task task) {
+        ArrayList<String> tags = task.getTags();
+        if (tags.isEmpty()) {
+            return "";
+        }
+        return FIELD_SEPARATOR + String.join(",", tags);
     }
 }

@@ -22,8 +22,8 @@ public class Event extends Task {
 
     @Override
     public String toString() {
-        return "[E]" + super.toString()
+        return withTags("[E]" + super.toString()
                 + " (from: " + DateTimeParser.formatForDisplay(from)
-                + " to: " + DateTimeParser.formatForDisplay(to) + ")";
+                + " to: " + DateTimeParser.formatForDisplay(to) + ")");
     }
 }

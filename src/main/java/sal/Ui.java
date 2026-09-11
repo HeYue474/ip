@@ -188,6 +188,10 @@ public class Ui {
         return "OK, I've marked this task as not done yet:\n  " + task;
     }
 
+    String formatTagged(Task task) {
+        return "OK, I've tagged this task:\n  " + task;
+    }
+
     private void printBoxed(String message) {
         showLine();
         System.out.println(message);

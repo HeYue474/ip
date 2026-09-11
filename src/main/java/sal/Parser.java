@@ -122,6 +122,44 @@ public class Parser {
     }
 
     /**
+     * Parses a tag command into a task index and tag name.
+     * Expected format: {@code tag <task number> <tag>}.
+     * A leading {@code #} on the tag is optional and is stripped.
+     *
+     * @param input Full command line.
+     * @return Zero-based task index and normalised tag name.
+     * @throws SalException If the format is wrong or the tag name is invalid.
+     */
+    public static ParsedTag parseTag(String input) throws SalException {
+        String rest = extractArgument(input, "tag");
+        String[] parts = rest.split("\\s+");
+        if (parts.length != 2) {
+            throw new SalException("Correct format: tag <task number> <tag>");
+        }
+        int index;
+        try {
+            index = Integer.parseInt(parts[0]) - 1;
+        } catch (NumberFormatException e) {
+            throw new SalException("Correct format: tag <task number> <tag>");
+        }
+        String tagName = stripHashPrefix(parts[1]);
+        if (!Task.isValidTagName(tagName)) {
+            throw new SalException("Correct format: tag <task number> <tag>");
+        }
+        return new ParsedTag(index, tagName);
+    }
+
+    /**
+     * Removes a single leading {@code #} from a tag token, if present.
+     */
+    private static String stripHashPrefix(String tagToken) {
+        if (tagToken.startsWith("#")) {
+            return tagToken.substring(1);
+        }
+        return tagToken;
+    }
+
+    /**
      * Shared error message for unsupported date/time formats.
      */
     private static String invalidDateTimeMessage() {
@@ -138,5 +176,24 @@ public class Parser {
             return "";
         }
         return input.substring(commandWord.length()).trim();
+    }
+
+    /**
+     * The task index and tag name parsed from a {@code tag} command.
+     */
+    public static class ParsedTag {
+        public final int index;
+        public final String tagName;
+
+        /**
+         * Creates a parsed tag command.
+         *
+         * @param index Zero-based task index.
+         * @param tagName Tag name without a leading {@code #}.
+         */
+        public ParsedTag(int index, String tagName) {
+            this.index = index;
+            this.tagName = tagName;
+        }
     }
 }

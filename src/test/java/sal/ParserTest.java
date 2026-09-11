@@ -194,6 +194,45 @@ public class ParserTest {
     }
 
     @Test
+    public void parseTag_validNumberAndTag_returnsIndexAndName() throws SalException {
+        Parser.ParsedTag parsed = Parser.parseTag("tag 2 fun");
+        assertEquals(1, parsed.index);
+        assertEquals("fun", parsed.tagName);
+    }
+
+    @Test
+    public void parseTag_hashPrefix_stripsHash() throws SalException {
+        Parser.ParsedTag parsed = Parser.parseTag("tag 1 #urgent");
+        assertEquals(0, parsed.index);
+        assertEquals("urgent", parsed.tagName);
+    }
+
+    @Test
+    public void parseTag_hyphenAndUnderscore_allowed() throws SalException {
+        Parser.ParsedTag parsed = Parser.parseTag("tag 3 cs-2103_t");
+        assertEquals(2, parsed.index);
+        assertEquals("cs-2103_t", parsed.tagName);
+    }
+
+    @Test
+    public void parseTag_missingTag_exceptionThrown() {
+        SalException exception = assertThrows(SalException.class, () -> Parser.parseTag("tag 1"));
+        assertEquals("Correct format: tag <task number> <tag>", exception.getMessage());
+    }
+
+    @Test
+    public void parseTag_nonIntegerIndex_exceptionThrown() {
+        SalException exception = assertThrows(SalException.class, () -> Parser.parseTag("tag two fun"));
+        assertEquals("Correct format: tag <task number> <tag>", exception.getMessage());
+    }
+
+    @Test
+    public void parseTag_invalidTagName_exceptionThrown() {
+        SalException exception = assertThrows(SalException.class, () -> Parser.parseTag("tag 1 hello world"));
+        assertEquals("Correct format: tag <task number> <tag>", exception.getMessage());
+    }
+
+    @Test
     public void parseEvent_invalidDate_exceptionThrown() {
         SalException exception = assertThrows(SalException.class, () ->
                 Parser.parseEvent("event meeting /from not-a-date /to 2019-10-16"));

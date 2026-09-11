@@ -128,6 +128,8 @@ public class Sal {
                 return deleteTask(input);
             case "find":
                 return ui.formatFoundTasks(tasks.find(Parser.parseFind(input)));
+            case "tag":
+                return tagTask(input);
             default:
                 throw new SalException("Command not recognised.");
         }
@@ -152,6 +154,13 @@ public class Sal {
         Task removed = tasks.delete(index);
         saveTasks();
         return ui.formatTaskDeleted(removed, tasks.size());
+    }
+
+    private String tagTask(String input) throws SalException {
+        Parser.ParsedTag parsed = Parser.parseTag(input);
+        Task task = tasks.tag(parsed.index, parsed.tagName);
+        saveTasks();
+        return ui.formatTagged(task);
     }
 
     private String addTask(Task task) throws SalException {
