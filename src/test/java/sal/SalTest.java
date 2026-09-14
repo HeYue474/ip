@@ -124,6 +124,20 @@ public class SalTest {
     }
 
     @Test
+    public void getChatResponse_validCommand_isNotError() {
+        ChatResponse response = sal.getChatResponse("todo read book");
+        assertFalse(response.isError());
+        assertTrue(response.getMessage().contains("Got it. I've added this task:"));
+    }
+
+    @Test
+    public void getChatResponse_unknownCommand_isError() {
+        ChatResponse response = sal.getChatResponse("blah");
+        assertTrue(response.isError());
+        assertEquals("Command not recognised.", response.getMessage());
+    }
+
+    @Test
     public void getResponse_invalidTodo_returnsFormatHint() {
         assertEquals("Correct format: todo <task name>", sal.getResponse("todo"));
     }

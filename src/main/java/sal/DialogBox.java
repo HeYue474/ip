@@ -11,20 +11,21 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 
 /**
- * Represents a dialog box consisting of an ImageView to represent the speaker's face
- * and a label containing text from the speaker.
+ * Represents a dialog box consisting of a circular profile picture
+ * and a message bubble containing text from the speaker.
  */
 public class DialogBox extends HBox {
     @FXML
     private Label dialog;
     @FXML
-    private ImageView displayPicture;
+    private Circle displayPicture;
 
-    private DialogBox(String text, Image img) {
+    private DialogBox(String text, Image img, String bubbleStyleClass) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("/view/DialogBox.fxml"));
             fxmlLoader.setController(this);
@@ -35,11 +36,12 @@ public class DialogBox extends HBox {
         }
 
         dialog.setText(text);
-        displayPicture.setImage(img);
+        dialog.getStyleClass().addAll("bubble", bubbleStyleClass);
+        displayPicture.setFill(new ImagePattern(img, 0, 0, 1, 1, true));
     }
 
     /**
-     * Flips the dialog box such that the ImageView is on the left and text on the right.
+     * Flips the dialog box such that the profile picture is on the left and text on the right.
      */
     private void flip() {
         ObservableList<Node> tmp = FXCollections.observableArrayList(this.getChildren());
@@ -56,7 +58,7 @@ public class DialogBox extends HBox {
      * @return Dialog box showing the user's message.
      */
     public static DialogBox getUserDialog(String text, Image img) {
-        return new DialogBox(text, img);
+        return new DialogBox(text, img, "user-bubble");
     }
 
     /**
@@ -64,10 +66,12 @@ public class DialogBox extends HBox {
      *
      * @param text Message text.
      * @param img Sal avatar.
+     * @param isError {@code true} to style the bubble as an error message.
      * @return Dialog box showing Sal's reply.
      */
-    public static DialogBox getSalDialog(String text, Image img) {
-        var db = new DialogBox(text, img);
+    public static DialogBox getSalDialog(String text, Image img, boolean isError) {
+        String bubbleStyleClass = isError ? "error-bubble" : "bot-bubble";
+        var db = new DialogBox(text, img, bubbleStyleClass);
         db.flip();
         return db;
     }
