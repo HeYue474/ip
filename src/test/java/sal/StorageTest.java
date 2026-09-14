@@ -163,4 +163,46 @@ public class StorageTest {
         Storage storage = new Storage(file.toString());
         assertThrows(IOException.class, storage::load);
     }
+
+    @Test
+    public void load_deadlineWithoutTagsField_loadsEmptyTags() throws Exception {
+        Path file = tempDir.resolve("legacy-deadline.txt");
+        Files.write(file, List.of("D | 0 | return book | 2019-10-15"));
+        Storage storage = new Storage(file.toString());
+
+        Task loaded = new TaskList(storage.load()).get(0);
+        assertInstanceOf(Deadline.class, loaded);
+        assertEquals("return book", loaded.description);
+        assertTrue(loaded.getTags().isEmpty());
+        assertEquals("2019-10-15", DateTimeParser.formatForStorage(((Deadline) loaded).by));
+    }
+
+    @Test
+    public void load_eventWithoutTagsField_loadsEmptyTags() throws Exception {
+        Path file = tempDir.resolve("legacy-event.txt");
+        Files.write(file, List.of("E | 1 | meeting | 2019-10-15 | 2019-10-16"));
+        Storage storage = new Storage(file.toString());
+
+        Task loaded = new TaskList(storage.load()).get(0);
+        assertInstanceOf(Event.class, loaded);
+        assertEquals("meeting", loaded.description);
+        assertTrue(loaded.isDone);
+        assertTrue(loaded.getTags().isEmpty());
+    }
+
+    @Test
+    public void load_deadlineMissingDate_exceptionThrown() throws IOException {
+        Path file = tempDir.resolve("sal.txt");
+        Files.write(file, List.of("D | 0 | return book"));
+        Storage storage = new Storage(file.toString());
+        assertThrows(IOException.class, storage::load);
+    }
+
+    @Test
+    public void load_eventMissingEndDate_exceptionThrown() throws IOException {
+        Path file = tempDir.resolve("sal.txt");
+        Files.write(file, List.of("E | 0 | meeting | 2019-10-15"));
+        Storage storage = new Storage(file.toString());
+        assertThrows(IOException.class, storage::load);
+    }
 }

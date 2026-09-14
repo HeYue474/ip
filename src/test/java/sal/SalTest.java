@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -147,5 +148,68 @@ public class SalTest {
         String response = sal.getResponse("bye");
         assertEquals("Bye. Hope to see you again soon!", response);
         assertTrue(sal.isExit());
+    }
+
+    @Test
+    public void getResponse_deadline_addsTask() {
+        String response = sal.getResponse("deadline return book /by 2019-10-15");
+        assertTrue(response.contains("Got it. I've added this task:"));
+        assertTrue(response.contains("[D][ ] return book"));
+        assertTrue(response.contains("(by:"));
+        assertTrue(response.contains("Now you have 1 tasks in the list."));
+    }
+
+    @Test
+    public void getResponse_event_addsTask() {
+        String response = sal.getResponse("event meeting /from 2019-10-15 /to 2019-10-16");
+        assertTrue(response.contains("Got it. I've added this task:"));
+        assertTrue(response.contains("[E][ ] meeting"));
+        assertTrue(response.contains("(from:"));
+        assertTrue(response.contains(" to:"));
+        assertTrue(response.contains("Now you have 1 tasks in the list."));
+    }
+
+    @Test
+    public void getResponse_deadlineAndEvent_persistAcrossReload() {
+        sal.getResponse("deadline return book /by 2019-10-15");
+        sal.getResponse("event meeting /from 2/12/2019 1400 /to 2/12/2019 1600");
+        Sal reloaded = new Sal(tempDir.resolve("sal.txt").toString());
+        String list = reloaded.getResponse("list");
+        assertTrue(list.contains("[D][ ] return book"));
+        assertTrue(list.contains("[E][ ] meeting"));
+    }
+
+    @Test
+    public void getResponse_emptyOrWhitespaceInput_returnsError() {
+        assertEquals("Command not recognised.", sal.getResponse(""));
+        assertEquals("Command not recognised.", sal.getResponse("   "));
+    }
+
+    @Test
+    public void getResponse_outOfRangeIndex_returnsError() {
+        sal.getResponse("todo read book");
+        assertTrue(sal.getResponse("mark 2").contains("out of bounds"));
+        assertTrue(sal.getResponse("unmark 0").contains("out of bounds"));
+        assertTrue(sal.getResponse("delete 5").contains("out of bounds"));
+        assertTrue(sal.getResponse("tag 2 fun").contains("out of bounds"));
+        assertTrue(sal.getResponse("list").contains("1.[T][ ] read book"));
+    }
+
+    @Test
+    public void constructor_unreadableDataFile_startsWithEmptyList() throws Exception {
+        Path notAFile = tempDir.resolve("not-a-file");
+        Files.createDirectory(notAFile);
+        Sal broken = new Sal(notAFile.toString());
+        assertTrue(broken.getResponse("list").endsWith("Here are the tasks in your list:"));
+    }
+
+    @Test
+    public void getResponse_unwritableDataFile_returnsSaveError() throws Exception {
+        Path notAFile = tempDir.resolve("not-a-file");
+        Files.createDirectory(notAFile);
+        Sal broken = new Sal(notAFile.toString());
+        ChatResponse response = broken.getChatResponse("todo read book");
+        assertTrue(response.isError());
+        assertEquals("Could not save tasks to disk.", response.getMessage());
     }
 }
