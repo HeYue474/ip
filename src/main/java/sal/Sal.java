@@ -67,10 +67,20 @@ public class Sal {
      * @return Reply to display in a dialog box.
      */
     public String getResponse(String input) {
+        return getChatResponse(input).getMessage();
+    }
+
+    /**
+     * Generates a GUI reply, including whether the command failed.
+     *
+     * @param input Raw user input from the GUI.
+     * @return Reply text and an error flag for bubble styling.
+     */
+    public ChatResponse getChatResponse(String input) {
         try {
-            return handleCommand(input.trim());
+            return new ChatResponse(handleCommand(input.trim()), false);
         } catch (SalException e) {
-            return e.getMessage();
+            return new ChatResponse(e.getMessage(), true);
         }
     }
 

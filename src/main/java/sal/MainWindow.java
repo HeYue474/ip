@@ -41,7 +41,7 @@ public class MainWindow extends AnchorPane {
      */
     public void setSal(Sal s) {
         sal = s;
-        dialogContainer.getChildren().add(DialogBox.getSalDialog(sal.getWelcomeMessage(), salImage));
+        dialogContainer.getChildren().add(DialogBox.getSalDialog(sal.getWelcomeMessage(), salImage, false));
     }
 
     /**
@@ -51,10 +51,10 @@ public class MainWindow extends AnchorPane {
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
-        String response = sal.getResponse(input);
+        ChatResponse response = sal.getChatResponse(input);
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
-                DialogBox.getSalDialog(response, salImage)
+                DialogBox.getSalDialog(response.getMessage(), salImage, response.isError())
         );
         userInput.clear();
 
