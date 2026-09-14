@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 /**
  * Parses user-entered date/time strings and formats stored dates for display.
@@ -25,11 +26,12 @@ public class DateTimeParser {
     private static final DateTimeFormatter STORAGE_DATE_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    /** English locale keeps month names and AM/PM markers the same on every OS. */
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("MMM dd yyyy");
+            DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
 
     private static final DateTimeFormatter DISPLAY_DATE_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a");
+            DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
 
     /**
      * Parses a date/time string into a {@link TaskDateTime}.

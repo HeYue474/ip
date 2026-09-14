@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -95,16 +96,26 @@ public class DateTimeParserTest {
     @Test
     public void formatForDisplay_dateOnly_doesNotIncludeTime() {
         TaskDateTime dateTime = DateTimeParser.parse("2019-10-15");
-        String display = DateTimeParser.formatForDisplay(dateTime);
-        assertFalse(display.contains(":"));
-        assertTrue(display.contains("2019"));
+        assertEquals("Oct 15 2019", DateTimeParser.formatForDisplay(dateTime));
     }
 
     @Test
     public void formatForDisplay_dateTime_includesTime() {
         TaskDateTime dateTime = DateTimeParser.parse("2/12/2019 1800");
-        String display = DateTimeParser.formatForDisplay(dateTime);
-        assertTrue(display.contains(":"));
-        assertTrue(display.contains("2019"));
+        assertEquals("Dec 02 2019, 6:00 PM", DateTimeParser.formatForDisplay(dateTime));
+    }
+
+    @Test
+    public void formatForDisplay_nonEnglishDefaultLocale_stillUsesEnglishMonth() {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.GERMANY);
+            assertEquals("Oct 15 2019",
+                    DateTimeParser.formatForDisplay(DateTimeParser.parse("2019-10-15")));
+            assertEquals("Dec 02 2019, 6:00 PM",
+                    DateTimeParser.formatForDisplay(DateTimeParser.parse("2/12/2019 1800")));
+        } finally {
+            Locale.setDefault(original);
+        }
     }
 }
